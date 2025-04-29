@@ -7,10 +7,10 @@ import { sendResponse } from '../../utils/sendResponse';
 import { OrderService } from './order.service';
 
 const createOrder = catchAsync(async (req, res) => {
-// console.log(req.body);
+// console.log("rrffr",req.body);
   const result = await OrderService.createOrderIntoDB(req.body);
 
-  // console.log({result});
+  console.log({result});
   sendResponse.sendCreateDataResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -73,7 +73,7 @@ const deleteSingleOrder = catchAsync(async (req, res) => {
 });
 
 const prescriptionUpload = catchAsync(async (req, res) => {
-  // Check if the file is uploaded
+  // Check if the file is up loaded
   if (!req.file) {
     throw new AppError(httpStatus.BAD_REQUEST, 'No file uploaded.');
   }

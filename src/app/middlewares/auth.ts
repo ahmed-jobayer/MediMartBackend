@@ -13,6 +13,8 @@ const auth = (...requiredRoles: TUserRole[]) => {
     const secret = config.jwt_access_secret;
     // console.log('token', token);
     // console.log('secret', secret);
+    // console.log('body', req.body);
+
 
     if (!token) {
       throw new AppError(HttpStatus.UNAUTHORIZED, 'You are not authorized!😎');

@@ -10,9 +10,11 @@ const orderItemValidationSchema = z.object({
 const orderValidationSchema = z.object({
     products: z.array(orderItemValidationSchema).nonempty('Order must contain at least one product'),
     user: z.string(),
+    shippingAddress: z.string(),
+    city: z.string(),
     totalPrice: z.number().optional(),
-    shippingStatus: z.enum([...shippingStatus] as [string, ...string[]]),
-    paymentStatus: z.enum([...paymentStatus] as [string, ...string[]]),
+    shippingStatus: z.enum([...shippingStatus] as [string, ...string[]]).optional(),
+    paymentStatus: z.enum([...paymentStatus] as [string, ...string[]]).optional(),
     transactionId: z.string().optional(),
     isDeleted: z.boolean().optional(),
 })
@@ -27,4 +29,4 @@ const updateOrderValidationSchema = z.object({
 })
 
 
-export const OrderValidation = {orderValidationSchema, updateOrderValidationSchema}
+export const OrderValidation = { orderValidationSchema, updateOrderValidationSchema }

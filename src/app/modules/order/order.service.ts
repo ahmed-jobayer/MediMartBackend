@@ -10,31 +10,50 @@ import { UserServices } from '../user/user.service';
 import { v4 as uuidv4 } from 'uuid';
 
 const createOrderIntoDB = async (payload: TOrder) => {
-  // console.log(payload);
   const session = await mongoose.startSession();
-
+console.log({payload});
   try {
     session.startTransaction();
     const user_id = payload.user.toString();
-    const productId = payload.products[0].product;
-    const orderQuantity = payload.products[0].quantity;
-
-    const DBuser = await UserServices.getSingleUser(user_id);
     const transactionId = `${uuidv4()}-${Date.now()}`;
+    const DBuser = await UserServices.getSingleUser(user_id);
 
-    const product = await Medicine.findById(productId);
+    // Validate all products
+    for (const item of payload.products) {
+      const product = await Medicine.findById(item.product);
 
-    if (!product) {
-      throw new AppError(httpStatus.NOT_FOUND, 'Product not found');
+      if (!product) {
+        throw new AppError(httpStatus.NOT_FOUND, `Product ${item.product} not found`);
+      }
+
+      if (product.quantity === 0) {
+        throw new AppError(httpStatus.BAD_REQUEST, `Product ${product.name} is out of stock`);
+      }
+
+      if (product.quantity < item.quantity) {
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          `Not enough stock for ${product.name}`
+        );
+      }
     }
 
-    if (product.quantity === 0) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Product is out of stock');
+    // Reduce stock for all products
+    for (const item of payload.products) {
+      await Medicine.findByIdAndUpdate(
+        item.product,
+        { $inc: { quantity: -item.quantity } },
+        { session }
+      );
     }
 
-    if (product.quantity < orderQuantity) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Not enough stock available');
-    }
+    // Combine product names for payment
+    const productNames = await Promise.all(
+      payload.products.map(async (item) => {
+        const product = await Medicine.findById(item.product);
+        return product?.name || 'Unknown';
+      })
+    );
 
     const data = {
       total_amount: payload.totalPrice,
@@ -44,23 +63,23 @@ const createOrderIntoDB = async (payload: TOrder) => {
       fail_url: `${process.env.API_BASE_URL}/api/orders/fail/${transactionId}`,
       cancel_url: `${process.env.API_BASE_URL}/api/orders/cancel/${transactionId}`,
       shipping_method: 'NO',
-      product_name: product.name,
+      product_name: productNames.join(', '),
       product_category: 'Physical Goods',
       product_profile: 'general',
       cus_name: DBuser?.name ?? 'Unknown',
       cus_email: DBuser?.email ?? 'unknown@example.com',
-      cus_add1: 'Dhaka',
+      cus_add1: payload.shippingAddress ?? 'Dhaka',
       cus_add2: 'Bangladesh',
-      cus_city: 'Dhaka',
+      cus_city: payload.city ?? 'Dhaka',
       cus_state: 'Dhaka',
       cus_postcode: '1000',
       cus_country: 'Bangladesh',
       cus_phone: '01711111111',
       cus_fax: '01711111111',
-      ship_name: 'Customer Name',
-      ship_add1: 'Dhaka',
+      ship_name: DBuser?.name ?? 'Customer Name',
+      ship_add1: payload.shippingAddress ?? 'Dhaka',
       ship_add2: 'Bangladesh',
-      ship_city: 'Dhaka',
+      ship_city: payload.city ?? 'Dhaka',
       ship_state: 'Dhaka',
       ship_postcode: '1000',
       ship_country: 'Bangladesh',
@@ -82,12 +101,6 @@ const createOrderIntoDB = async (payload: TOrder) => {
     const orderData = { ...payload, transactionId };
     const createdOrder = await Order.create([orderData], { session });
 
-    await Medicine.findByIdAndUpdate(
-      productId,
-      { $inc: { quantity: -orderQuantity } },
-      { session }
-    );
-
     await session.commitTransaction();
     session.endSession();
 
@@ -102,10 +115,11 @@ const createOrderIntoDB = async (payload: TOrder) => {
   }
 };
 
+
 const successOrderIntoDB = async (transactionId: string) => {
   // Find the order with the given transactionId
   const order = await Order.findOne({ transactionId });
-
+ 
   if (!order) {
     throw new AppError(
       httpStatus.NOT_FOUND,
@@ -117,7 +131,7 @@ const successOrderIntoDB = async (transactionId: string) => {
   const updatedRwsult = await Order.updateOne(
     { transactionId },
     {
-      status: 'PROCESSING',
+      shippingStatus: 'PROCESSING',
       paymentStatus: 'PAID',
     },
     { new: true }

@@ -10,10 +10,12 @@ const router = express.Router();
 
 router.post('/create-order',  auth( USER_ROLE.admin,USER_ROLE.customer),
   upload.single('file'),
-  (req: Request, res: Response, next: NextFunction) => {
-    req.body = JSON.parse(req.body.data);
-    next();
-  }, validateRequest(OrderValidation.orderValidationSchema), OrderControllers.createOrder)
+  // (req: Request, res: Response, next: NextFunction) => {
+  //   req.body = JSON.parse(req.body.data);
+  //   next();
+  // }, 
+  // validateRequest(OrderValidation.orderValidationSchema), 
+  OrderControllers.createOrder)
 
 router.get('/', OrderControllers.getAllOrder);
 router.patch(
@@ -23,7 +25,7 @@ router.patch(
 );
 router.delete('/:id', OrderControllers.deleteSingleOrder);
 
-router.post('/success/:transactionId', OrderControllers.successOrder);
+router.post('/success/:transactionId',  OrderControllers.successOrder);
 router.post('/fail/:transactionId', OrderControllers.failOrder);
 
 router.post(
@@ -31,5 +33,7 @@ router.post(
   upload.single('prescription'),
   OrderControllers.prescriptionUpload
 );
+
+
 
 export const OrderRoutes = router;

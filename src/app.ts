@@ -11,7 +11,7 @@ import router from './app/routes';
 const app: Application = express();
 app.use(
   cors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', "https://medi-mart-frontend-unhgubgyuubyyh-chi.vercel.app"],
     credentials: true,
   })
 );
