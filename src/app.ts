@@ -7,6 +7,7 @@ import express, { Application, Request, Response } from 'express';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
+import httpStatus from 'http-status';
 
 const app: Application = express();
 app.use(
@@ -58,10 +59,10 @@ app.use(globalErrorHandler);
 
 // route not found
 // app.use('*', (req: Request, res: Response) => {
-//   res.status(HttpStatus.FORBIDDEN).send({
+//   res.status(httpStatus.FORBIDDEN).send({
 //     success: false,
 //     message: 'Route not found!',
-//     status: HttpStatus.FORBIDDEN,
+//     status: httpStatus.FORBIDDEN,
 //   });
 // });
 
