@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const createOrderIntoDB = async (payload: TOrder) => {
   const session = await mongoose.startSession();
-console.log({payload});
+// console.log({payload});
   try {
     session.startTransaction();
     const user_id = payload.user.toString();
@@ -97,6 +97,7 @@ console.log({payload});
 
     const apiResponse = await sslcz.init(data);
     const GatewayPageURL = apiResponse.GatewayPageURL;
+    // console.log({GatewayPageURL});
 
     const orderData = { ...payload, transactionId };
     const createdOrder = await Order.create([orderData], { session });
@@ -119,7 +120,7 @@ console.log({payload});
 const successOrderIntoDB = async (transactionId: string) => {
   // Find the order with the given transactionId
   const order = await Order.findOne({ transactionId });
- 
+ console.log({order});
   if (!order) {
     throw new AppError(
       httpStatus.NOT_FOUND,

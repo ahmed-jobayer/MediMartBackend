@@ -10,7 +10,7 @@ const createOrder = catchAsync(async (req, res) => {
 // console.log("rrffr",req.body);
   const result = await OrderService.createOrderIntoDB(req.body);
 
-  console.log({result});
+  // console.log({result});
   sendResponse.sendCreateDataResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -21,6 +21,7 @@ const createOrder = catchAsync(async (req, res) => {
 
 const successOrder = catchAsync(async (req, res) => {
   const { transactionId } = req.params;
+  // console.log({transactionId});
   const result = await OrderService.successOrderIntoDB(transactionId);
 
   if (result.modifiedCount === 0) {
@@ -128,7 +129,7 @@ const prescriptionUpload = catchAsync(async (req, res) => {
 
 export const OrderControllers = {
   createOrder,
-  getAllOrder,
+  getAllOrder, 
   updateSingleOrder,
   deleteSingleOrder,
   successOrder,
